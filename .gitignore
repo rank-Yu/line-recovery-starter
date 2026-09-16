@@ -13,3 +13,10 @@ interfaces/runtime/
 app/runtime/
 app/penguin_data/
 *.log
+.venv/
+.pytest_cache/
+.ruff_cache/
+runtime/
+penguin_data/
+private/
+*.zip

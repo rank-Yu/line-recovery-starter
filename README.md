@@ -1,6 +1,68 @@
-# Line Recovery Starter
+# Line Recovery · 产线恢复助手
 
-使用 Penguin Harness 从零构建产线巡检 Agent 的起始材料。仓库提供业务需求、输入示例、数据与报告规范，以及两个可运行的模拟设备 MCP 服务。`app/` 由 Penguin Harness 在后续构建时生成。
+用 Penguin 制作中文应用：上传纸箱输送工位资料，分析异常；有工具侧许可时请求恢复，并依据新反馈说明结果。本仓库提供构建所需的业务说明、输入示例、契约和两个演示 MCP 服务，不包含已生成的应用、运行记录或评测产物。
+
+## 两个业务故事
+
+### 停电后已经来电，输送线仍未恢复
+
+生产中的输送段突然停下。现场人员反馈刚才短时停电，现在已来电，但输送带仍没有转动，图片中纸箱分散排列。助手需要结合电压、驱动就绪、速度、计数、日志和生产任务核对经过，不能仅凭图片判定停机原因。
+
+设备采用“不随来电自动重启”的规则。Agent 先查询最新可信状态；供电和运行许可、安全条件均满足时，通过 power-control 请求恢复输送，再核对带速及新的出口计数。不需要再次接通电源，更不能看到“已来电”就直接启动。
+
+### 温度升高，开启散热后再核验
+
+驱动柜温度升高，控制器按温控策略暂停输送，独立风机未开启。助手依据温度趋势、风机指令和反馈判断是否请求散热。cooling-control 只开启批准的风机模式，不修改温度、不解除保护、不启动输送。
+
+风机开启后要观察温度。满足公开恢复条件并由后端重新给出运行许可后，才能通过受控启动入口请求恢复。风机不转、温度不降、状态过期或其他条件不满足时，说明失败/未确认并转人工。
+
+这些是应用需求和公共设备规则，不是逐例答案。正常、计划停机、维护及资料不足也必须能正确处理。
+
+## 给 Penguin 的材料与阅读顺序
+
+1. 本 README：业务背景、功能和分工。
+2. [输入格式](contracts/README.md)、[状态 Schema](contracts/device-state.schema.json)、[报告 Schema](contracts/report.schema.json) 和 [模板](contracts/report.template.json)。
+3. [供电恢复 MCP](interfaces/power-control/README.md)、[散热 MCP](interfaces/cooling-control/README.md)。
+4. 联调时看 [example](examples/README.md)：一份完整但无答案的输入，用来理解文件和数据格式，不是必须照抄的解题范文。
+
+初版制作只使用这一份无答案 example。后续训练、测试输入、参考答案和评测记录不随本仓库提供；`telemetry.csv` 和 `events.jsonl` 是待分析的原始设备资料，不是 Agent 运行记录。
+
+## 应用交付要求
+
+- 上传 ZIP 或加载 example，浏览 CSV、日志、状态和图片。
+- 分别展示历史异常判断、证据、动作请求、最新反馈及未确定事项。
+- 先查询工具当前状态再决定是否执行，上传快照的许可不授予真实执行权限。
+- 前端从实际后端审计记录展示动作，不把模型写出的计划当作已执行。
+- 命令受理、风机转动、温度达标、输送运行、出口恢复产出是不同阶段。
+- 没有服务时显示“工具未连接”；默认演示模式，不伪造真实恢复。
+- Penguin 在 `app/` 编写 Agent、前后端、MCP 客户端和启动说明；MCP 服务已交付到 `interfaces/`。未初始化后端或未连接时，应用仍应如实显示不可用。
+
+### 发给 Penguin 的构建指令
+
+工作区选择仓库根目录 `line-recovery-starter`，勾选应用中的 `agent-initialization` 技能，发送：
+
+> 请使用 agent-initialization，先读 README.md，再看 contracts/、interfaces/ 和 examples/input/，在 app/ 制作产线恢复助手，包括 Agent、后端、中文前端和启动说明。按现有契约实现两个 MCP 的客户端；服务未交付时明确显示未连接，不伪造动作成功。用 example 联调输入读取和页面，保留初始版本，本轮不扩充数据、不做优化或正式评分。
+
+原仓库的指令使用 `agent-creation`；当前版本显示为 `agent-initialization`，上面仅替换技能名称，其余指令沿用原文。两个 MCP 服务已经提供，接入与初始化见 [MCP 使用说明](interfaces/README.md)。应用构建完成后仍需验证模型调用、工具连接和反馈读取。
+
+## 当前文件
+
+```text
+line-recovery-starter/
+├── README.md             # Penguin 的构建要求与业务说明
+├── examples/input/       # 一份无答案输入，未含恢复后的记录
+├── contracts/            # 数据和报告结构、输出模板
+└── interfaces/
+    ├── power-control/    # 可运行的查询与恢复输送 MCP
+    ├── cooling-control/  # 可运行的查询与散热 MCP
+    ├── shared/           # 共用演示后端、状态版本及操作审计
+    ├── tests/            # MCP 服务回归测试
+    └── manage.py         # 演示设备初始化、复位与状态查询
+```
+
+`app/` 由 Penguin 在构建时生成。制作 example 为供电场景，保持不变。两个 MCP 只操作独立的 dry_run 演示状态，不连接真实设备。
+
+资料是新制作的合成演示工位，使用独立控制供电与 24 V DC 驱动支路，不是电池设备。风机位于闭合控制柜内，不能凭图片判断其状态。
 
 ## 获取材料
 
@@ -9,60 +71,8 @@ git clone https://github.com/rank-Yu/line-recovery-starter.git
 cd line-recovery-starter
 ```
 
-在 Penguin Harness 中选择 `line-recovery-starter` 作为工作区，并配置可用的模型。模拟设备服务需要 Python 3.11 或更高版本，只使用标准库。
+MCP 服务需要 Python 3.11+，仅使用标准库；生成应用所需的其他依赖以 Penguin 交付的启动说明为准。
 
-## 业务需求
+本文示例使用 DeepSeek V4.1 Flash（提供方 `deepseek`，模型 ID `deepseek-flash`，官方 API 地址 `https://api.deepseek.com`）。Penguin 客户端的模型配置与生成应用的模型配置分别处理；应用启动时还需按其说明配置密钥，不将密钥提交到仓库。
 
-制作一个中文产线巡检应用：用户上传输送工位资料后，Agent 结合运行记录、日志、设备状态快照和工位图片分析异常，给出判断依据；需要操作时查询设备当前状态，确认条件后调用工具，并根据后续反馈说明结果。
-
-- **来电后仍然停机。** 设备不随供电恢复自动重启。Agent 核对停机经过，再查询当前供电、运行许可等条件，通过 power-control 请求恢复输送，并核对带速和出口计数。
-- **温度升高导致暂停。** Agent 根据温度与风机记录判断是否需要散热，通过 cooling-control 请求开启风机。温度持续达标且运行许可恢复后，再查询状态并请求恢复输送。
-
-条件不满足、信息不足、风机故障或结果尚未确认时，应保留实际状态并说明原因。所有设备操作都在本地模拟环境中执行，不连接真实设备。
-
-## 材料与阅读顺序
-
-| 材料 | 用途 |
-| --- | --- |
-| 本 README | 业务需求与交付目标 |
-| [contracts/](contracts/README.md) | 输入格式、设备状态、动作结果、报告 Schema 与模板 |
-| [examples/input/](examples/input/README.md) | 一份完整的供电恢复场景输入 lr_001，不含答案与执行结果 |
-| [interfaces/](interfaces/README.md) | 输送恢复和散热控制 MCP 的源码、接口说明与联调方式 |
-
-输入示例中的 `events.jsonl` 和 `telemetry.csv` 是待分析的原始设备资料，不是 Agent 的运行记录。状态快照反映采集时刻，不是执行操作的实时授权。工位图片只用于核对可见物料，不能单独证明停机原因。
-
-## 开始构建
-
-先在 Penguin Harness 中查看当前可用的 Agent 构建技能，再发送下面的指令；需要指定技能时，使用当前版本中的实际名称。
-
-> 阅读根目录 README.md，以及 contracts/、interfaces/ 和 examples/input/，按照业务需求在 app/ 中构建产线巡检 Agent、后端与中文网页应用。接入两个已提供的模拟 MCP 服务，让 Agent 先查询当前状态、满足条件后请求操作，并读回反馈确认结果。用 examples/input/ 联调资料读取、诊断与报告展示，提供依赖安装、模型配置、模拟设备初始化和启动说明。未连接工具或未配置模型时明确提示，不伪造执行结果。本轮只完成初始构建和联调，不扩充数据、不优化或正式评分，不修改原始输入与接口契约。
-
-## 交付要求
-
-- 支持加载 `examples/input/`，以及上传以 `request.json` 为根文件的 ZIP。
-- 页面展示原始资料、历史异常判断、证据、工具调用及操作后的反馈。
-- Agent 调用查询与操作工具；页面根据真实工具记录展示动作，不把模型的计划当作已执行。
-- 区分命令受理、设备运行反馈和出口恢复产出；报告符合 `contracts/report.schema.json`。
-- 生成代码、依赖和应用说明放在 `app/`；模型密钥从环境变量或本地 `.env` 读取，不进入代码和报告。
-- 工具未连接、状态过期或条件不足时，明确显示未执行或需人工处理。
-- 保存初始应用版本，说明如何启动、验证及重新初始化演示状态。
-
-## 目录
-
-```text
-line-recovery-starter/
-├── README.md
-├── contracts/
-├── examples/
-│   └── input/
-└── interfaces/
-    ├── power-control/
-    ├── cooling-control/
-    ├── shared/
-    ├── tests/
-    └── manage.py
-```
-
-仓库不包含应用成品、Agent 会话、运行数据库、执行日志、评测答案或成绩。MCP 服务源码属于预先提供的设备能力，数据库和审计记录在运行时创建。
-
-材料整理自 [line-recovery](https://github.com/lzh368/line-recovery)，该仓库可作为完整实现与后续实验的参考；本仓库使用独立提交历史作为构建起点。
+材料来自 [line-recovery](https://github.com/lzh368/line-recovery/tree/1e1f1e33d2ea55feafa89ae22895623179f68cfd)。业务故事与应用交付要求沿用原文，保留现成的 MCP 服务，移除应用成品、运行记录和评测材料。这是基于同一份需求与接口重新构建应用的起点；模型与 Penguin 版本会影响生成结果，不保证生成代码或界面逐字节相同。

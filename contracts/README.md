@@ -39,7 +39,7 @@ production_requested、run_command、run_resume_permitted 分别是生产需求�
 
 温控读数与指令分开：cooling_enabled 是风机命令，cooling_fan_running 是实际反馈。temperature_recovery_ready 由可信后端依据连续时间和公开条件计算，不由 Agent 自报。
 
-解析器应按输入中的 data_dictionary.json 识别实际 CSV 列，不应把示例中的列数写死。设备状态中的运行许可、风机与温控字段已在 Schema 中定义，可供后续扩展输入使用。
+后续输入可在原 example 的 CSV 列基础上增加 7 个已定义状态字段的历史序列：run_resume_permitted、cooling_enabled、cooling_fan_running、cooling_fan_fault、cooling_control_permitted、thermal_pause_active、temperature_recovery_ready。逐例 data_dictionary.json 给出实际列；旧 example 不变，解析器不要假定所有输入只有旧列。
 
 ## 诊断词汇与证据
 
@@ -51,4 +51,4 @@ cabinet_overtemperature_pause：达到公开温控暂停条件并有对应暂停
 
 ## 不随输入提供
 
-参考答案、未来工具响应、私有后端状态及训练/测试标签不在上传包。一个 example 只展示输入格式和联调资料，不提供执行答案；评测材料在后续实验中另行准备。
+参考答案、未来工具响应、私有后端状态及训练/测试标签不在上传包，也不进入制作工作区。一个 example 只展示输入格式和联调资料，不提供执行答案；评测材料在后续实验中另行准备。
