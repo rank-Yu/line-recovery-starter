@@ -1,0 +1,55 @@
+{
+  "schema_version": "0.1",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 391,
+      "sha256": "590de47e3330c6f50e5164b0dffe6eefd233c4dc79d5eca51f93a815f2dcda4f"
+    },
+    {
+      "path": "data_dictionary.json",
+      "bytes": 4475,
+      "sha256": "4bc133a81368959a86b31fa34cf6cba10905557dac359dd7ecfc3ef77cddce67"
+    },
+    {
+      "path": "device.json",
+      "bytes": 1306,
+      "sha256": "eb34420679be086806919a982ead140098e8731f3262a8faff88010b57c6c056"
+    },
+    {
+      "path": "device_state.json",
+      "bytes": 1028,
+      "sha256": "b61e468de7146596e85aa3df073ee6ceec9a734ed7c7893f1df0e8aaa3d3f20a"
+    },
+    {
+      "path": "events.jsonl",
+      "bytes": 3277,
+      "sha256": "b55493b387983f80c162dca65bf206a8d33079820d4bc65627cf7012ffe25f7d"
+    },
+    {
+      "path": "images/frame_001.png",
+      "bytes": 2399100,
+      "sha256": "108c39bc2c673a32d07189f8fab945115a3b44ab1d495a8bc76a331c3f8cd579"
+    },
+    {
+      "path": "images.json",
+      "bytes": 329,
+      "sha256": "5703e9fcc1fd096215204c56e090012ca8946e82122d7b498f11986556bbdf49"
+    },
+    {
+      "path": "operating_guide.md",
+      "bytes": 3590,
+      "sha256": "8169eaa670830010a6aff30da3983aa8480d90466f02d3efec3e1217079e03ee"
+    },
+    {
+      "path": "request.json",
+      "bytes": 807,
+      "sha256": "79ee7742a969065cda05b8e198a6523fd36eaead3c0528ac03d049c55f2b788d"
+    },
+    {
+      "path": "telemetry.csv",
+      "bytes": 12851,
+      "sha256": "b50e116b74839d40970e5744709abc654d3d5f8e580a9e1dc341f91647e4d5cb"
+    }
+  ]
+}
